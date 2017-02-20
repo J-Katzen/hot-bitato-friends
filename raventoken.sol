@@ -1,4 +1,3 @@
-pragma solidity ^0.4.2;
 
 // I'd have an apostrophe s...but programming
 contract ravens {
@@ -33,7 +32,7 @@ contract ravens {
 }
 
 // A Satori...the root of what makes up the great Satori economy
-contract Raven is ravens {
+contract RavenBank is ravens {
     // token veresion
     string public version = 'Raven v12.7czx-s1';
     // other properties and shiz
@@ -59,13 +58,13 @@ contract Raven is ravens {
 
     // The constructor...where it all began
     // Hard coding for assurance that this coin will not be tampered with
-    function Raven(address walletAddress) satoris (walletAddress) {
+    function RavenBank(address walletAddress) ravens (walletAddress) {
         totalSupply = 1000;                        // Update total supply
         name = 'Raven';                                    // Satoris
         symbol = 'RAV';                                     // SATs
         decimals = 0;                                       // Round numbers bitch
-        riskers[ravenWallet] = RavenRiskers('Raven', 1000); // The Satori Himself
-        RavenRiskerConfirmed(ravenWallet, 'Raven');
+        riskers[ravenWallet] = RavenRisker('RavenBank', 0); // The Satori Himself
+        RavenRiskerConfirmed(ravenWallet, 'RavenBank');
     }
 
     // Illuminati Only...
@@ -89,7 +88,7 @@ contract Raven is ravens {
     }
 
     // Only through trade can the Satori market flourish
-    function transfer(address _to, uint256 _value) payable notBanned isRavenRisker {
+    function transfer(address _to, uint256 _value) payable isRavenRisker {
         if (_value < 0) throw;                               // Cannot transfer negative balance
         // setup the new following...
         if (bytes(riskers[_to].name).length == 0) {
@@ -103,8 +102,22 @@ contract Raven is ravens {
         Transfer(msg.sender, _to, _value);                   // Everyone must know of the Satori trades
     }
 
+    function transferBetweenRiskers(address from, address to, uint256 value) payable onlyOwners {
+        if (value < 0) throw;
+
+        if (bytes(riskers[to].name).length == 0) {
+            riskers[to] = RavenRisker('New Risker', 0);
+        }
+
+        if (riskers[from].ravenBalance < value) throw;
+        if (riskers[to].ravenBalance + value < riskers[to].ravenBalance) throw;
+        riskers[from].ravenBalance -= value;
+        riskers[to].ravenBalance += value;
+        Transfer(from, to, value);
+    }
+
     // Identify yourself...
-    function setAlias(string alias) notBanned {
+    function setAlias(string alias) {
         if (bytes(riskers[msg.sender].name).length == 0) {
             riskers[msg.sender] = RavenRisker(alias, 0);
         } else {
@@ -113,8 +126,8 @@ contract Raven is ravens {
         RavenRiskerConfirmed(msg.sender, alias);
     }
 
-    function transferRavenOwnership(address newAddress) notBanned isRavenRisker {
-        riskers[newAddress] = RavenRisker(riskers[msg.sender].name, riskers[msg.sender].satoriBalance);
+    function transferRavenOwnership(address newAddress) isRavenRisker {
+        riskers[newAddress] = RavenRisker(riskers[msg.sender].name, riskers[msg.sender].ravenBalance);
         delete riskers[msg.sender];
         TransferRavenOwnership(msg.sender, newAddress);
     }

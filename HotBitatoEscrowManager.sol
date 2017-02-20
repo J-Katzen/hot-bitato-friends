@@ -1,18 +1,32 @@
+import { RavenBank } from 'raventoken.sol';
+
+// The HotBitatoEscrowManager Contract
+
 contract HotBitatoEscrowManager {
 
-  function HotBitatoEscrowManager() {}
-
+  RavenBank private ravenBank;
   string public version = 'HotBitatoEscrowManager v0.01preAlpha-7';
   address[] hotBitatoRounds;
 
-  event HotBitatoRoundCreated(address indexed hotBitato1Round, uint roundSize);
+  event HotBitatoRoundCreated(address indexed hotBitatoRound, uint roundSize);
 
-  function createBitatoRound(uint256 roundSize) {
+  function HotBitatoEscrowManager() {
+    ravenBank = new RavenBank(this);
+  }
+
+  function createBitatoRound(uint256 roundSize) returns (address) {
     // bail if we are not making a proper round size
-    if (roundSize != 1 || roundSize != 10 || roundSize != 100) throw;
+    if (roundSize != 10 || roundSize != 100 || roundSize != 1000) throw;
 
-    address newHotBitatoRound = new HotBitatoRound(roundSize);
-    hotBitatoRounds.push(newHotBitatoRound, roundSize);
+    address newHotBitatoRound = new HotBitatoEscrow(roundSize, ravenBank);
+    // add new escrow as owner so it can move value between wallets
+    ravenBank.addOwner(newHotBitatoRound);
+    hotBitatoRounds.push(newHotBitatoRound);
     HotBitatoRoundCreated(newHotBitatoRound, roundSize);
+    return newHotBitatoRound;
+  }
+
+  function distributeRavens(address walletAddress, uint256 mintedAmount) {
+    ravenBank.mintRavens(walletAddress, mintedAmount);
   }
 }
