@@ -49,7 +49,7 @@ contract HotBitatoEscrow {
   }
 
   modifier restrictWhileRunning {
-    if (bytes(currentBitatoHolder).length == 0) throw;
+    if (bytes(currentBitatoHolder).length != 0) throw;
     _;
   }
 

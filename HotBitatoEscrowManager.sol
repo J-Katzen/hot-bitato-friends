@@ -14,16 +14,15 @@ contract HotBitatoEscrowManager {
     ravenBank = new RavenBank(this);
   }
 
-  function createBitatoRound(uint256 roundSize) returns (address) {
+  function createBitatoRound(uint roundSize) {
     // bail if we are not making a proper round size
-    if (roundSize != 10 || roundSize != 100 || roundSize != 1000) throw;
+    if (roundSize != 10 && roundSize != 100 && roundSize != 1000) throw;
 
     address newHotBitatoRound = new HotBitatoEscrow(roundSize, ravenBank);
     // add new escrow as owner so it can move value between wallets
     ravenBank.addOwner(newHotBitatoRound);
     hotBitatoRounds.push(newHotBitatoRound);
     HotBitatoRoundCreated(newHotBitatoRound, roundSize);
-    return newHotBitatoRound;
   }
 
   function distributeRavens(address walletAddress, uint256 mintedAmount) {

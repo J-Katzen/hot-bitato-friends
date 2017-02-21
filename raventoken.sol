@@ -48,7 +48,6 @@ contract RavenBank is ravens {
         uint256     ravenBalance;
     }
 
-    mapping (address => uint256) public balanceOf;
     mapping (address => RavenRisker) public riskers;
 
     /* This generates a public event on the blockchain that will notify clients */
@@ -71,6 +70,14 @@ contract RavenBank is ravens {
     modifier isRavenRisker {
         if (bytes(riskers[msg.sender].name).length == 0) throw;
         _;
+    }
+
+    function balanceOf(address ravenRisker) {
+        if (bytes(riskers[ravenRisker].name).length == 0) {
+            return 0;
+        } else {
+            return riskers[ravenRisker].ravenBalance;
+        }
     }
 
     // What can owners do?  Mint SATs of course.

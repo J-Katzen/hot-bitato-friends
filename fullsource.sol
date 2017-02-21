@@ -60,7 +60,7 @@ contract RavenBank is ravens {
     // The constructor...where it all began
     // Hard coding for assurance that this coin will not be tampered with
     function RavenBank(address walletAddress) ravens (walletAddress) {
-        totalSupply = 1000;                        // Update total supply
+        totalSupply = 0;                        // Update total supply
         name = 'Raven';                                    // Satoris
         symbol = 'RAV';                                     // SATs
         decimals = 0;                                       // Round numbers bitch
@@ -77,6 +77,7 @@ contract RavenBank is ravens {
     // What can owners do?  Mint SATs of course.
     function mintRavens(address target, uint256 mintedAmount) onlyOwners {
         riskers[target].ravenBalance += mintedAmount;
+        balanceOf[target] += mintedAmount;
         totalSupply += mintedAmount;
         Transfer(0, msg.sender, mintedAmount);
         Transfer(msg.sender, target, mintedAmount);
@@ -174,7 +175,7 @@ contract HotBitatoEscrow {
   }
 
   modifier restrictWhileRunning {
-    if (bytes(currentBitatoHolder).length == 0) throw;
+    if (bytes(currentBitatoHolder).length != 0) throw;
     _;
   }
 
@@ -197,7 +198,7 @@ contract HotBitatoEscrow {
     return ravenBank.balanceOf(this);
   }
 
-  function joinBitatoRound(string alias, uint endTimeToAdd) restrictWhileRunning {
+  function joinBitatoRound(string alias, uint endTimeToAdd) payable restrictWhileRunning {
     if (bytes(alias).length == 0) throw;
     if (ravenBank.balanceOf(msg.sender) < bitatoRoundSize) throw;
     if (endTimeToAdd < 0 || endTimeToAdd > 2) throw;
@@ -213,6 +214,7 @@ contract HotBitatoEscrow {
     endTimeAdded[msg.sender] = endTimeToAdd;
     totalEndTimeAdded += endTimeToAdd;
     // remove balance from user and add to escrow
+    totalTokensCollected += bitatoRoundSize;
     ravenBank.transferBetweenRiskers(msg.sender, this, bitatoRoundSize);
 
     ParticipantJoined(alias, totalParticipants);
@@ -222,9 +224,10 @@ contract HotBitatoEscrow {
     }
   }
 
-  function leaveBitatoRound() isBitatoParticipant restrictWhileRunning {
+  function leaveBitatoRound() payable isBitatoParticipant restrictWhileRunning {
     totalParticipants -= 1;
     // transfer balance back out of escrow
+    totalTokensCollected -= bitatoRoundSize;
     ravenBank.transfer(msg.sender, bitatoRoundSize);
     // initiate left event
     ParticipantLeft(hotBitatoParticipants[msg.sender], totalParticipants);
@@ -249,7 +252,7 @@ contract HotBitatoEscrow {
     endTimestamp = (now + (totalEndTimeAdded * 20)) + 150;
   }
 
-  function passBitato() isCurrentHolder {
+  function passBitato() payable isCurrentHolder {
     if (now > endTimestamp) {
       bitatoLoser = currentBitatoHolder;
       BitatoExplode(currentBitatoHolder);
@@ -292,19 +295,18 @@ contract HotBitatoEscrowManager {
     ravenBank = new RavenBank(this);
   }
 
-  function createBitatoRound(uint256 roundSize) returns (address) {
+  function createBitatoRound(uint roundSize) payable {
     // bail if we are not making a proper round size
-    if (roundSize != 10 || roundSize != 100 || roundSize != 1000) throw;
+    if (roundSize != 10 && roundSize != 100 && roundSize != 1000) throw;
 
     address newHotBitatoRound = new HotBitatoEscrow(roundSize, ravenBank);
     // add new escrow as owner so it can move value between wallets
     ravenBank.addOwner(newHotBitatoRound);
     hotBitatoRounds.push(newHotBitatoRound);
     HotBitatoRoundCreated(newHotBitatoRound, roundSize);
-    return newHotBitatoRound;
   }
 
-  function distributeRavens(address walletAddress, uint256 mintedAmount) {
+  function distributeRavens(address walletAddress, uint256 mintedAmount) payable {
     ravenBank.mintRavens(walletAddress, mintedAmount);
   }
 }
